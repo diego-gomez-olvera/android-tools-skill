@@ -1,0 +1,63 @@
+name: Validate Skill
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run validation script
+        run: ./scripts/validate.sh
+
+  validate-tooling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Assemble Sample
+        run: ./gradlew :sample:assembleDebug
+      - name: Lint Sample
+        run: ./gradlew :sample:lintDebug
+      - name: Test Sample
+        run: ./gradlew :sample:testDebugUnitTest
+
+  validate-adb-commands:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        api-level: [34]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+      - name: Run ADB validations on emulator
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: aosp_atd
+          arch: x86_64
+          profile: pixel_6
+          script: |
+            # Validate deployment
+            ./gradlew :sample:installDebug
+            
+            # Validate the UI State and Screenshot commands from SKILL.md
+            adb shell uiautomator dump /sdcard/ui.xml
+            adb pull /sdcard/ui.xml
+            adb exec-out screencap -p > shot.png
