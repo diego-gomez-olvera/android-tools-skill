@@ -27,6 +27,7 @@ required_files=(
   "CLAUDE.md"
   "GEMINI.md"
   "agents/openai.yaml"
+  ".github/copilot-instructions.md"
   "references/adb-device.md"
   "references/adb-logging.md"
   "references/gradle-build.md"
@@ -164,6 +165,24 @@ if [[ -x "$SKILL_DIR/install.sh" ]]; then
   ok "install.sh is executable"
 else
   error "install.sh is not executable (run: chmod +x install.sh)"
+fi
+
+# ── skill-scripts/ present and executable ───────────────────────────────────
+echo ""
+echo "10. skill-scripts/ present and executable"
+
+if [[ -d "$SKILL_DIR/skill-scripts" ]]; then
+  ok "skill-scripts/ directory exists"
+  while IFS= read -r script; do
+    name=$(basename "$script")
+    if [[ -x "$script" ]]; then
+      ok "$name is executable"
+    else
+      error "$name is not executable (run: chmod +x skill-scripts/$name)"
+    fi
+  done < <(find "$SKILL_DIR/skill-scripts" -maxdepth 1 \( -name "*.sh" -o -name "*.py" \) | sort)
+else
+  error "skill-scripts/ directory missing"
 fi
 
 # ── Summary ─────────────────────────────────────────────────────────────────

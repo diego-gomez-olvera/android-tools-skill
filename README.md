@@ -17,7 +17,7 @@
 
 ## What This Skill Does
 
-This is an **AI agent skill** — not a library. Install it once, and your AI coding agent (Claude Code, Gemini CLI, Gemini for Android Studio, Codex) gains full knowledge of the Android development toolchain outside Android Studio: ADB, Gradle CLI, static analysis, testing, deployment, project introspection, dependency management, and code search.
+This is an **AI agent skill** — not a library. Install it once, and your AI coding agent (Claude Code, Gemini CLI, Gemini for Android Studio, Codex, GitHub Copilot) gains full knowledge of the Android development toolchain outside Android Studio: ADB, Gradle CLI, static analysis, testing, deployment, project introspection, dependency management, and code search.
 
 Every capability maps 1-to-1 to an Android Studio built-in AI tool and has a verified CLI equivalent.
 
@@ -39,9 +39,9 @@ Every capability maps 1-to-1 to an Android Studio built-in AI tool and has a ver
 | `get_artifact_consumers` | `./gradlew :module:dependencyInsight` |
 | `analyze_current_file` | `./gradlew lint` / `./gradlew lintKotlin` |
 | `version_lookup` | `./gradlew dependencyUpdates` |
-| `code_search` | `grep -rn <pattern> --include="*.kt"` |
+| `code_search` | `git grep -n <pattern> -- '*.kt' '*.java'` |
 | `find_files` | `find . -name <name> -not -path "*/build/*"` |
-| `find_usages` | `grep -rn -w <symbol> --include="*.kt"` |
+| `find_usages` | `git grep -n -w <symbol> -- '*.kt' '*.java'` |
 
 ## What's Covered
 
@@ -111,6 +111,9 @@ curl -fsSL https://raw.githubusercontent.com/diego-gomez-olvera/android-tools-sk
 # Codex
 curl -fsSL https://raw.githubusercontent.com/diego-gomez-olvera/android-tools-skill/main/install.sh | bash -s -- --agent=codex
 
+# GitHub Copilot
+curl -fsSL https://raw.githubusercontent.com/diego-gomez-olvera/android-tools-skill/main/install.sh | bash -s -- --agent=copilot
+
 # Multiple agents at once
 curl -fsSL https://raw.githubusercontent.com/diego-gomez-olvera/android-tools-skill/main/install.sh | bash -s -- --agent=android-studio,gemini
 
@@ -121,6 +124,8 @@ curl -fsSL https://raw.githubusercontent.com/diego-gomez-olvera/android-tools-sk
 ## Usage
 
 Invoke by mentioning `@android-tools-skill` anywhere in your message. Using `@` (not `/`) avoids colliding with Android Studio's built-in `/tools` slash command.
+
+**GitHub Copilot** — no `@mention` needed. The instructions in `.github/copilot-instructions.md` are injected automatically into every Copilot Chat session for the repo.
 
 ```text
 @android-tools-skill How do I take a screenshot of the current device screen?
@@ -155,6 +160,8 @@ android-tools-skill/
 ├── CLAUDE.md                   # Claude Code — points to AGENTS.md
 ├── GEMINI.md                   # Gemini CLI — points to AGENTS.md
 ├── install.sh                  # Installer: auto-detects agents, clones into right path
+├── .github/
+│   └── copilot-instructions.md # GitHub Copilot — injected automatically by Copilot Chat
 ├── agents/
 │   └── openai.yaml             # Codex UI metadata (required)
 ├── references/                 # Deep-dive reference files (required)

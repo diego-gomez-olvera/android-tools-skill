@@ -3,7 +3,7 @@ set -euo pipefail
 
 REPO="https://github.com/diego-gomez-olvera/android-tools-skill.git"
 SKILL="android-tools-skill"
-AGENTS_ALL="claude gemini android-studio codex"
+AGENTS_ALL="claude gemini android-studio codex copilot"
 
 # ── Help ──────────────────────────────────────────────────────────────────────
 usage() {
@@ -16,7 +16,7 @@ One-liner (run from your Android project root):
 Options:
   --all                     Install for all detected agents without prompting
   --agent=<id[,id,...]>     Install for specific agents only
-                              IDs: claude, gemini, android-studio, codex
+                              IDs: claude, gemini, android-studio, codex, copilot
   --global                  Install user-wide (~/) instead of per-repo (./)
   --help                    Show this help
 EOF
@@ -41,6 +41,7 @@ agent_label() {
     gemini)         echo "Gemini CLI";;
     android-studio) echo "Gemini for Android Studio";;
     codex)          echo "Codex";;
+    copilot)        echo "GitHub Copilot";;
     *)              echo "$1";;
   esac
 }
@@ -60,6 +61,10 @@ agent_path() {
     codex)
       [[ "$global" == true ]] && echo "$HOME/.codex/skills/$SKILL" \
                                || echo ".codex/skills/$SKILL";;
+    copilot)
+      # Copilot reads .github/copilot-instructions.md — per-repo only, no global path
+      [[ "$global" == true ]] && echo "" \
+                               || echo ".github/copilot-instructions.md";;
   esac
 }
 
@@ -70,6 +75,7 @@ agent_detected() {
     gemini)         [[ -d ".gemini" ]]          || command -v gemini &>/dev/null;;
     android-studio) [[ -f "settings.gradle.kts" || -f "settings.gradle" || -d ".skills" ]];;
     codex)          [[ -d ".codex" ]]           || command -v codex  &>/dev/null;;
+    copilot)        [[ -d ".github" ]] || git remote -v 2>/dev/null | grep -q "github\.com";;
     *)              return 1;;
   esac
 }
@@ -160,6 +166,20 @@ for id in $TARGETS; do
     scope="$([[ "$OPT_GLOBAL" == true ]] && echo "global " || echo "")install"
     skip "No $scope path defined for $label — skipping"
     (( COUNT_SKIP++ )) || true
+    continue
+  fi
+
+  # ── Copilot: single-file install ──────────────────────────────────────────
+  if [[ "$id" == "copilot" ]]; then
+    RAW="https://raw.githubusercontent.com/diego-gomez-olvera/android-tools-skill/main/.github/copilot-instructions.md"
+    mkdir -p "$(dirname "$dest")"
+    if curl -fsSL "$RAW" -o "$dest" 2>/dev/null; then
+      ok "Installed $(dim "($dest)")"
+      (( COUNT_OK++ )) || true
+    else
+      fail "Download failed — check network or URL: $RAW"
+      (( COUNT_FAIL++ )) || true
+    fi
     continue
   fi
 
