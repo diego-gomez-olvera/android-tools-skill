@@ -80,30 +80,31 @@ diff <(unzip -l old.apk | sort -k4) <(unzip -l new.apk | sort -k4) | head -50
 
 For AAB (Android App Bundle) files — shows download and install sizes per device configuration.
 
-```bash
-# Download bundletool jar (Google-published, requires only JDK)
-# https://github.com/google/bundletool/releases
-BUNDLETOOL=bundletool-all.jar
-curl -Lo $BUNDLETOOL "https://github.com/google/bundletool/releases/latest/download/bundletool-all-1.17.2.jar"
+### Install
 
+```bash
+./skill-scripts/install-bundletool.sh
+```
+
+Installs via Homebrew on macOS, or downloads the latest jar from GitHub and creates a wrapper at `/usr/local/bin/bundletool` on Linux.
+
+### Usage
+
+All commands are identical regardless of how `bundletool` was installed.
+
+```bash
 # Get total download size for all configurations
-java -jar $BUNDLETOOL get-size-total --bundle=app-release.aab
+bundletool get-size-total --bundle=app-release.aab
 
 # Get size for a specific device
-java -jar $BUNDLETOOL get-device-spec --output=device.json
-java -jar $BUNDLETOOL get-size-total --bundle=app-release.aab --device-spec=device.json
+bundletool get-device-spec --output=device.json
+bundletool get-size-total --bundle=app-release.aab --device-spec=device.json
 
 # Get size broken down by dimension (ABI, screen density, language)
-java -jar $BUNDLETOOL get-size-total --bundle=app-release.aab --dimensions=ABI
-java -jar $BUNDLETOOL get-size-total --bundle=app-release.aab --dimensions=SCREEN_DENSITY
-java -jar $BUNDLETOOL get-size-total --bundle=app-release.aab --dimensions=LANGUAGE
+bundletool get-size-total --bundle=app-release.aab --dimensions=ABI,SCREEN_DENSITY,LANGUAGE
 
-# All dimensions at once
-java -jar $BUNDLETOOL get-size-total --bundle=app-release.aab \
-  --dimensions=ABI,SCREEN_DENSITY,LANGUAGE
-
-# Output as CSV
-java -jar $BUNDLETOOL get-size-total --bundle=app-release.aab --human-readable-sizes
+# Human-readable output
+bundletool get-size-total --bundle=app-release.aab --human-readable-sizes
 ```
 
 ## 4. DEX Method Count
@@ -220,7 +221,7 @@ fi
 
 | Do | Don't |
 |---|---|
-| Use `bundletool get-size-total` for AAB download size estimates | Use raw AAB file size — it's not what users download |
+| Use `bundletool get-size-total` for AAB size estimates (install via `brew install bundletool`) | Use raw AAB file size — it's not what users download |
 | Compare debug vs release APK sizes to verify shrinking works | Assume `isShrinkResources` removed everything — verify |
 | Monitor APK size in CI with a budget script | Let APK size grow unchecked — set a threshold |
 | Check per-ABI native lib sizes separately | Include all ABIs when only arm64-v8a matters for production |

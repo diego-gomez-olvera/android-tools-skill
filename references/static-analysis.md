@@ -43,9 +43,7 @@ grep -B 0 -A 3 'severity="Error"' app/build/reports/lint-results-debug.xml
 android {
     lint {
         abortOnError = true             // Fail build on errors
-        warningsAsErrors = false        // Don't treat warnings as errors
         checkReleaseBuilds = true       // Run on release
-        enable += "StopShip"           // Enable specific check
         htmlReport = true
         xmlReport = true
     }
@@ -142,60 +140,7 @@ naming:
     functionPattern: '([a-z][a-zA-Z0-9]*)|(`[^`]+`)'  # Allows composable names
 ```
 
-## 4. Compose-Specific Rules (io.nlopez.compose.rules)
 
-Used in this project via `compose-rules-ktlint`. Checks Compose-specific patterns.
-
-```bash
-# Already integrated via kotlinter — just run:
-./gradlew lintKotlin
-
-# Rules enforced (examples):
-# - ComposableNaming: @Composable functions should be PascalCase
-# - CompositionLocalAllowlist: track CompositionLocal usage
-# - ModifierMissing: top-level composables should have Modifier param
-# - ViewModelInjection: use Hilt/Koin injection, not direct instantiation
-```
-
-## 5. Pre-commit Hook Setup
-
-Enforce checks before every commit using a plain Git hook (no third-party tools):
-
-```bash
-# .git/hooks/pre-commit
-#!/bin/bash
-set -e
-
-echo "Running ktlint check..."
-./gradlew lintKotlin --daemon --quiet
-
-echo "Running Android lint..."
-./gradlew :module:lintDebug --daemon --quiet
-
-echo "All checks passed."
-```
-
-```bash
-chmod +x .git/hooks/pre-commit
-```
-
-## 6. Analysis in CI
-
-```bash
-# In GitHub Actions / CI pipeline
-- name: Run lint
-  run: ./gradlew :module:lintDebug --no-daemon
-
-- name: Run ktlint
-  run: ./gradlew lintKotlin --no-daemon
-
-- name: Upload lint report
-  if: always()
-  uses: actions/upload-artifact@v4
-  with:
-    name: lint-report
-    path: app/build/reports/lint-results-debug.html
-```
 
 ## Do / Don't
 
@@ -204,4 +149,4 @@ chmod +x .git/hooks/pre-commit
 | Run `lintKotlin` for formatting, `lint` for Android issues | Conflate ktlint and Android lint — they check different things |
 | Use `.editorconfig` for shared ktlint rules | Hardcode ktlint config in multiple places |
 | Fix formatting with `formatKotlin` before review | Manually fix indentation that ktlint would fix automatically |
-| Run lint in CI on every PR | Only run lint locally (regressions slip through) |
+| Run `lintKotlin` for formatting, `lint` for Android issues, `detekt` for code quality | Run all three manually when one suffices for the task at hand |
