@@ -188,7 +188,7 @@ for id in $TARGETS; do
     printf "    %s\n" "$(dim "Updating $dest")"
     pull_err=""
     if pull_err=$(git -C "$dest" pull --ff-only 2>&1); then
-      git -C "$dest" sparse-checkout set --no-cone /SKILL.md /AGENTS.md /CLAUDE.md /GEMINI.md /agents/ /references/ /skill-scripts/ /README.md 2>/dev/null || true
+      git -C "$dest" sparse-checkout set --no-cone /SKILL.md /agents/ /references/ /skill-scripts/ /README.md 2>/dev/null || true
       ok "Updated $(dim "($dest)")"
       (( COUNT_OK++ )) || true
     else
@@ -203,7 +203,7 @@ for id in $TARGETS; do
     mkdir -p "$(dirname "$dest")"
     clone_err=""
     if clone_err=$(git clone --depth 1 --filter=blob:none --sparse "$REPO" "$dest" 2>&1); then
-      git -C "$dest" sparse-checkout set --no-cone /SKILL.md /AGENTS.md /CLAUDE.md /GEMINI.md /agents/ /references/ /skill-scripts/ /README.md 2>/dev/null || true
+      git -C "$dest" sparse-checkout set --no-cone /SKILL.md /agents/ /references/ /skill-scripts/ /README.md 2>/dev/null || true
       ok "Installed $(dim "($dest)")"
       (( COUNT_OK++ )) || true
     else

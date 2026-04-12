@@ -139,8 +139,3 @@ export PATH=$ANDROID_HOME/platform-tools:$PATH
 - **Perfetto traces, heap dumps, startup time** → [profiling.md](references/profiling.md)
 - **APK size, aapt2, bundletool size analysis** → [app-size.md](references/app-size.md)
 - **Test sharding for CI** → [testing.md](references/testing.md) § Test Sharding
-
-## Validation
-
-Run `./scripts/validate.sh` to check the skill package for broken links, missing
-references, and structural issues before committing.
