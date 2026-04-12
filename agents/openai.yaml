@@ -1,0 +1,4 @@
+interface:
+  display_name: "android-tools-skill"
+  short_description: "AI agent skill for Android CLI tooling — ADB, Gradle, lint, tests, deploy, and project introspection outside Android Studio"
+  default_prompt: "Use $android-tools-skill to run ADB commands, Gradle tasks, lint checks, tests, or inspect the Android project structure from the command line, without needing Android Studio."

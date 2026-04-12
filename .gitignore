@@ -1,0 +1,21 @@
+# Android build output
+build/
+sample/build/
+sample/release/
+.gradle/
+
+# Gradle wrapper cache (keep the jar)
+!gradle/wrapper/gradle-wrapper.jar
+
+# Local machine config
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Generated
+*.keystore
+!debug.keystore
+ui.xml
