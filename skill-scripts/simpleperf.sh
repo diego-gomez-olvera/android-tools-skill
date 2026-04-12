@@ -12,8 +12,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=ensure-python3.sh
-source "$SCRIPT_DIR/ensure-python3.sh"
+# shellcheck source=internal/ensure-python3.sh
+source "$SCRIPT_DIR/internal/ensure-python3.sh"
 
 PACKAGE="${1:?Usage: $0 <package> [duration_s]}"
 DURATION="${2:-10}"

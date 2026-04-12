@@ -42,4 +42,4 @@ adb pull "$REMOTE" "$OUTPUT"
 adb shell rm -f "$REMOTE"
 
 echo "Startup trace saved: $OUTPUT"
-"$SCRIPT_DIR/open-trace.sh" "$OUTPUT"
+"$SCRIPT_DIR/internal/open-trace.sh" "$OUTPUT"

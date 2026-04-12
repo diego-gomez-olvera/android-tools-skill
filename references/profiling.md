@@ -144,6 +144,10 @@ adb logcat -d | grep "Fully drawn"
 ## 6. GPU Rendering
 
 ```bash
+./skill-scripts/gpu-rendering.sh com.example.app    # dump gfxinfo + janky frame %
+```
+
+```bash
 # Enable GPU profiling bars (shows on device)
 adb shell setprop debug.hwui.profile true
 adb shell setprop debug.hwui.profile visual_bars

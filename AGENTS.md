@@ -50,10 +50,13 @@ sample/               # Hello World Android app (:sample module) for manual test
 ## Validation
 
 ```bash
-./scripts/validate.sh
+./scripts/validate.sh    # structure, links, file sizes
+./scripts/sync-agents.sh # agent files in sync with skill-scripts/ and SKILL.md
 ```
 
-Checks: required files present, SKILL.md front-matter, line counts (≤500), internal link integrity, all references linked from SKILL.md, `agents/openai.yaml` fields.
+`validate.sh` checks: required files present, SKILL.md front-matter, line counts (≤500), internal link integrity, all references linked from SKILL.md, `agents/openai.yaml` fields, skill-scripts/ executable.
+
+`sync-agents.sh` checks: every public script in `skill-scripts/` is listed in `copilot-instructions.md` and `README.md`; every SKILL.md tool name appears in both; no script referenced in agent docs is missing from disk.
 
 ## Key Conventions
 
@@ -65,6 +68,21 @@ Checks: required files present, SKILL.md front-matter, line counts (≤500), int
 - The `sample/` app is the `:sample` Gradle module (root project at repo root). It is a minimal Hello World used for manual testing only; do not add features to it.
 - Open the repo root in Android Studio to see the `:sample` module as a runnable Android app.
 - From CLI: `./gradlew :sample:assembleDebug` or `./gradlew :sample:installDebug`.
+
+## Adding a New Script
+
+When adding a script to `skill-scripts/`, update **all** of the following — `sync-agents.sh` will catch any that are missed:
+
+1. `chmod +x skill-scripts/<name>.sh` — make it executable.
+2. **`SKILL.md`** — add a row to the Tool Mapping table if it maps to a new Studio tool; add a Quick Routing entry.
+3. **`README.md`** — add the filename to the skill structure tree in the `skill-scripts/` block.
+4. **`.github/copilot-instructions.md`** — add a line to the Scripts section with a short comment.
+5. If the script is internal (not user-facing), add its name to the `INTERNAL` array in `scripts/sync-agents.sh`.
+6. Run `./scripts/validate.sh && ./scripts/sync-agents.sh` — both must pass with 0 errors/warnings.
+
+### Internal vs public scripts
+
+Scripts in `skill-scripts/internal/` are helpers not listed in agent-facing docs. All scripts directly under `skill-scripts/` are public and must appear in `copilot-instructions.md` and `README.md`. `sync-agents.sh` uses `find -maxdepth 1` so internal scripts are excluded automatically.
 
 ## Adding a New Reference Topic
 

@@ -29,4 +29,4 @@ adb pull "$REMOTE" "$OUTPUT"
 adb shell rm -f "$REMOTE"
 
 echo "Trace saved: $OUTPUT"
-"$SCRIPT_DIR/open-trace.sh" "$OUTPUT"
+"$SCRIPT_DIR/internal/open-trace.sh" "$OUTPUT"

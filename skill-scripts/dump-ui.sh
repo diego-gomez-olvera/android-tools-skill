@@ -12,8 +12,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=ensure-python3.sh
-source "$SCRIPT_DIR/ensure-python3.sh"
+# shellcheck source=internal/ensure-python3.sh
+source "$SCRIPT_DIR/internal/ensure-python3.sh"
 
 PACKAGE="${1:-}"
 TMP_XML="$(mktemp /tmp/ui_XXXXXX.xml)"
@@ -26,4 +26,4 @@ adb shell uiautomator dump /sdcard/ui.xml >/dev/null
 adb pull /sdcard/ui.xml "$TMP_XML" >/dev/null
 adb shell rm /sdcard/ui.xml
 
-python3 "$SCRIPT_DIR/parse-ui-dump.py" "$TMP_XML" "$PACKAGE"
+python3 "$SCRIPT_DIR/internal/parse-ui-dump.py" "$TMP_XML" "$PACKAGE"

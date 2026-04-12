@@ -24,6 +24,9 @@ When asked to perform Android development tasks, use the CLI equivalents below i
 | `code_search` | `git grep -n <pattern> -- '*.kt' '*.java'` |
 | `find_files` | `find . -name <name> -not -path "*/build/*"` |
 | `find_usages` | `git grep -n -w <symbol> -- '*.kt' '*.java'` |
+| `gradle_sync` | `./gradlew --dry-run` or `./gradlew tasks` |
+| `fetch_android_docs` | `curl https://developer.android.com/reference/<path>` |
+| `render_compose_preview` | screenshot test via `./gradlew :module:connectedAndroidTest` |
 
 ## Scripts
 
@@ -50,6 +53,15 @@ skill-scripts/version-lookup.sh   # version_lookup
 skill-scripts/apk-size.sh         # app-size analysis
 skill-scripts/startup-time.sh     # cold-start profiling
 skill-scripts/check-accessibility.sh  # accessibility audit
+skill-scripts/install-bundletool.sh   # install bundletool (mac/linux)
+skill-scripts/start-emulator.sh       # start AVD emulator
+skill-scripts/perfetto.sh             # capture Perfetto trace
+skill-scripts/startup-trace.sh        # cold-start + Perfetto trace
+skill-scripts/heap-dump.sh            # capture heap dump + convert
+skill-scripts/meminfo.sh              # memory usage (dumpsys meminfo)
+skill-scripts/gpu-rendering.sh        # GPU rendering stats
+skill-scripts/systrace.sh             # Systrace (legacy, API < 28)
+skill-scripts/simpleperf.sh           # CPU profiling via Simpleperf
 ```
 
 ## Core Rules

@@ -180,7 +180,7 @@ if [[ -d "$SKILL_DIR/skill-scripts" ]]; then
     else
       error "$name is not executable (run: chmod +x skill-scripts/$name)"
     fi
-  done < <(find "$SKILL_DIR/skill-scripts" -maxdepth 1 \( -name "*.sh" -o -name "*.py" \) | sort)
+  done < <(find "$SKILL_DIR/skill-scripts" -maxdepth 2 \( -name "*.sh" -o -name "*.py" \) | sort)
 else
   error "skill-scripts/ directory missing"
 fi

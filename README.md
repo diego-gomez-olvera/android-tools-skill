@@ -41,6 +41,7 @@ Every capability maps 1-to-1 to an Android Studio built-in AI tool and has a ver
 | `version_lookup` | `./gradlew dependencyUpdates` |
 | `code_search` | `git grep -n <pattern> -- '*.kt' '*.java'` |
 | `find_files` | `find . -name <name> -not -path "*/build/*"` |
+| `get_test_artifacts_for_sub_project` | `./gradlew :module:tasks` |
 | `find_usages` | `git grep -n -w <symbol> -- '*.kt' '*.java'` |
 
 ## What's Covered
@@ -178,16 +179,22 @@ android-tools-skill/
 │   └── app-size.md
 ├── README.md                   # This file (not read by agents)
 ├── scripts/
-│   └── validate.sh             # Skill structure validator (meta-script)
+│   ├── validate.sh             # Skill structure validator (meta-script)
+│   └── sync-agents.sh          # Verifies agent files stay in sync with skill-scripts/
 └── skill-scripts/              # CLI scripts for each SKILL command
     ├── build.sh, deploy.sh, lint.sh, unit-test.sh
     ├── screenshot.sh, read-logcat.sh, dump-ui.sh, adb-input.sh
     ├── list-projects.sh, list-tasks.sh, build-file.sh, source-folders.sh
     ├── code-search.sh, find-files.sh, find-usages.sh
     ├── dependency-insight.sh, version-lookup.sh
-    ├── apk-size.sh, startup-time.sh, gpu-rendering.sh
+    ├── apk-size.sh, install-bundletool.sh
+    ├── startup-time.sh, startup-trace.sh, gpu-rendering.sh
+    ├── perfetto.sh, heap-dump.sh, meminfo.sh
+    ├── systrace.sh, simpleperf.sh
     ├── check-accessibility.sh, start-emulator.sh
-    └── parse-ui-dump.py, check-accessibility.py
+    └── internal/               # helper scripts (not user-facing)
+        ├── ensure-python3.sh, open-trace.sh, serve-trace.py
+        └── parse-ui-dump.py, check-accessibility.py
 ```
 
 ## License

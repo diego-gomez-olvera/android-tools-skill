@@ -39,9 +39,9 @@ tool and has a verified CLI equivalent.
 | `get_artifact_consumers` | `./gradlew :module:dependencyInsight --dependency <artifact>` | [version-lookup.md](references/version-lookup.md) |
 | `analyze_current_file` | `./gradlew lint` | [static-analysis.md](references/static-analysis.md) |
 | `version_lookup` | `./gradlew dependencyUpdates` | [version-lookup.md](references/version-lookup.md) |
-| `code_search` | `grep -rn <pattern> --include="*.kt" --include="*.java"` | [code-search.md](references/code-search.md) |
+| `code_search` | `git grep -n <pattern> -- '*.kt' '*.java'` | [code-search.md](references/code-search.md) |
 | `find_files` | `find . -name <name> -not -path "*/build/*"` | [code-search.md](references/code-search.md) |
-| `find_usages` | `grep -rn -w <symbol> --include="*.kt" --include="*.java"` | [code-search.md](references/code-search.md) |
+| `find_usages` | `git grep -n -w <symbol> -- '*.kt' '*.java'` | [code-search.md](references/code-search.md) |
 | `fetch_android_docs` / `search_android_docs` | Context7 MCP or web search | — |
 | `render_compose_preview` | No CLI equivalent — use emulator + `screencap` | [adb-device.md](references/adb-device.md) |
 | `gradle_sync` | No full equivalent — `./gradlew :module:sourceSets` + `:module:dependencies` for partial data | [gradle-project.md](references/gradle-project.md) |
