@@ -7,12 +7,15 @@
 #
 # package_filter: optional substring to restrict output to nodes whose package
 #                 attribute contains it (e.g. "com.example.helloworld").
-# Requires: adb in PATH, a connected device or running emulator.
+# Requires: adb in PATH, python3, a connected device or running emulator.
 
 set -euo pipefail
 
-PACKAGE="${1:-}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=ensure-python3.sh
+source "$SCRIPT_DIR/ensure-python3.sh"
+
+PACKAGE="${1:-}"
 TMP_XML="$(mktemp /tmp/ui_XXXXXX.xml)"
 
 cleanup() { rm -f "$TMP_XML"; }

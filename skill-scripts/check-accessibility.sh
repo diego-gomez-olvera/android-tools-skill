@@ -6,9 +6,13 @@
 #   ./skill-scripts/check-accessibility.sh [package]
 #
 # If [package] is omitted, reports all packages found in the dump.
-# Requires: adb in PATH, a connected device or running emulator.
+# Requires: adb in PATH, python3, a connected device or running emulator.
 
 set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=ensure-python3.sh
+source "$SCRIPT_DIR/ensure-python3.sh"
 
 PACKAGE="${1:-}"
 TMP_XML="$(mktemp /tmp/ui_XXXXXX.xml)"
@@ -23,5 +27,4 @@ adb pull /sdcard/ui.xml "$TMP_XML" >/dev/null
 adb shell rm /sdcard/ui.xml
 
 # ── Analyse ─────────────────────────────────────────────────────────────────
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 python3 "$SCRIPT_DIR/check-accessibility.py" "$TMP_XML" "$PACKAGE"

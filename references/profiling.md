@@ -8,13 +8,10 @@ Perfetto is the modern tracing system for Android (API 28+). Traces are analyzed
 
 ### Quick capture (recommended)
 ```bash
-# Record a 10-second trace with default categories
-adb shell perfetto -o /data/misc/perfetto-traces/trace.perfetto-trace -t 10s \
-  sched freq idle am wm gfx view binder_driver hal dalvik camera input res memory
-
-# Pull and open
-adb pull /data/misc/perfetto-traces/trace.perfetto-trace ./trace.perfetto-trace
-# Open at https://ui.perfetto.dev
+./skill-scripts/perfetto.sh            # 10s trace → trace.perfetto-trace
+./skill-scripts/perfetto.sh 30         # 30s trace
+./skill-scripts/perfetto.sh 10 my.perfetto-trace
+# Open result at https://ui.perfetto.dev
 ```
 
 ### With config file (fine-grained control)
@@ -70,83 +67,37 @@ $ANDROID_HOME/platform-tools/record_android_trace -o trace.perfetto-trace -t 10s
 ## 2. Systrace (Legacy, API < 28)
 
 ```bash
-# systrace is a Python wrapper — available in SDK
-python3 $ANDROID_HOME/platform-tools/systrace/systrace.py \
-  --time=5 \
-  -o trace.html \
-  gfx view wm am dalvik sched freq idle
-
-# Open in Chrome
-open trace.html   # macOS
-# Or navigate to chrome://tracing and load trace.html
+./skill-scripts/systrace.sh            # 5s trace → trace.html
+./skill-scripts/systrace.sh 10         # 10s trace
+./skill-scripts/systrace.sh 5 my.html
+# Open in Chrome: chrome://tracing → Load → trace.html
 ```
+
+Requires python3 (`brew install python3` on macOS) and `$ANDROID_HOME/platform-tools/systrace/systrace.py`.
 
 ## 3. Heap Dumps
 
 Capture and analyze Java heap snapshots.
 
-### Capture heap dump
 ```bash
-# Get PID of the target app
-PID=$(adb shell pidof com.example.app)
-
-# Dump heap to device storage
-adb shell am dumpheap $PID /data/local/tmp/heap.hprof
-
-# Pull to local machine
-adb pull /data/local/tmp/heap.hprof ./heap.hprof
-adb shell rm /data/local/tmp/heap.hprof
+./skill-scripts/heap-dump.sh com.example.app
+# → heap.hprof (converted, ready for Android Studio / Eclipse MAT / VisualVM)
 ```
 
-### Convert for analysis
-```bash
-# Android hprof format differs from standard Java format
-# Convert with hprof-conv (bundled in platform-tools)
-hprof-conv heap.hprof heap-converted.hprof
-
-# Now open heap-converted.hprof in:
-# - Android Studio Memory Profiler (File → Open)
-# - Eclipse MAT (https://eclipse.dev/mat/)
-# - VisualVM
-```
-
-### One-liner: capture + convert
-```bash
-PACKAGE=com.example.app
-PID=$(adb shell pidof $PACKAGE)
-adb shell am dumpheap $PID /data/local/tmp/heap.hprof && \
-  adb pull /data/local/tmp/heap.hprof ./heap-raw.hprof && \
-  adb shell rm /data/local/tmp/heap.hprof && \
-  hprof-conv heap-raw.hprof heap.hprof && \
-  rm heap-raw.hprof && \
-  echo "Heap dump ready: heap.hprof"
-```
+Requires `hprof-conv` from `$ANDROID_HOME/platform-tools` (resolved automatically).
 
 ## 4. Memory Analysis (dumpsys)
 
 No file capture needed — real-time memory stats.
 
 ```bash
-# Full memory report for an app
-adb shell dumpsys meminfo com.example.app
+./skill-scripts/meminfo.sh com.example.app   # full report for one app
+./skill-scripts/meminfo.sh                   # system-wide summary (top 20 by PSS)
+```
 
-# Key sections in output:
-#   Java Heap    — managed heap (GC-collected)
-#   Native Heap  — malloc'd memory (NDK, bitmaps)
-#   Code         — .dex/.oat/.so mapped memory
-#   Stack        — thread stacks
-#   Graphics     — GPU/surface buffers
-#   TOTAL        — sum of all categories
+Key sections in the output: `Java Heap`, `Native Heap`, `Code`, `Stack`, `Graphics`, `TOTAL`.
 
-# Compact summary (just totals)
-adb shell dumpsys meminfo com.example.app | grep "TOTAL"
-
-# System-wide memory overview
-adb shell dumpsys meminfo
-
-# All apps ranked by memory
-adb shell dumpsys meminfo --sort-by-pss | head -40
-
+```bash
 # Low-memory killer thresholds
 adb shell getprop dalvik.vm.heapsize        # max heap per app
 adb shell getprop dalvik.vm.heapgrowthlimit  # growth limit before GC
@@ -166,39 +117,21 @@ done
 
 ### Measure cold start time
 ```bash
-# Force-stop + cold start with timing
-adb shell am force-stop com.example.app
-adb shell am start-activity -W -S com.example.app/.MainActivity
-
-# Key output values:
-#   TotalTime   — time from intent to activity fully drawn
-#   WaitTime    — time from am start to activity resumed
-#   ThisTime    — time for this specific activity
-
-# Cold start (clear process + start)
-adb shell am force-stop com.example.app && \
-  adb shell am start-activity -W -S com.example.app/.MainActivity 2>&1 | grep -E "TotalTime|WaitTime"
+./skill-scripts/startup-time.sh com.example.app/.MainActivity
+# Key output: TotalTime (intent → fully drawn), WaitTime (am start → resumed)
 ```
 
 ### Measure warm start
 ```bash
-# Press home first, don't force-stop
-adb shell input keyevent 3   # HOME
+adb shell input keyevent 3   # HOME (don't force-stop)
 adb shell am start-activity -W com.example.app/.MainActivity 2>&1 | grep "TotalTime"
 ```
 
-### Startup trace with Perfetto
+### Startup timing + Perfetto trace (combined)
 ```bash
-# Capture a trace that includes app startup
-adb shell am force-stop com.example.app
-adb shell perfetto -o /data/misc/perfetto-traces/startup.perfetto-trace -t 15s \
-  sched freq idle am wm gfx view dalvik &
-
-sleep 1
-adb shell am start-activity -W -S com.example.app/.MainActivity
-wait
-
-adb pull /data/misc/perfetto-traces/startup.perfetto-trace ./startup-trace.perfetto-trace
+./skill-scripts/startup-trace.sh com.example.app/.MainActivity
+# Prints TotalTime/WaitTime and saves startup.perfetto-trace
+# Open at: https://ui.perfetto.dev
 ```
 
 ### reportFullyDrawn timing
@@ -233,18 +166,11 @@ adb shell setprop debug.hwui.profile false
 Bundled in NDK. Works on Java, Kotlin, and native code.
 
 ```bash
-SIMPLEPERF=$ANDROID_HOME/ndk/$(ls $ANDROID_HOME/ndk 2>/dev/null | tail -1)/simpleperf/simpleperf
-
-# Record CPU profile of a running app (10 seconds)
-adb shell run-as com.example.app simpleperf record -p $(adb shell pidof com.example.app) --duration 10
-
-# Or use the app_profiler.py helper
-python3 $ANDROID_HOME/ndk/*/simpleperf/app_profiler.py \
-  -p com.example.app -r "--duration 10" -o perf.data
-
-# Generate flamegraph
-python3 $ANDROID_HOME/ndk/*/simpleperf/report_html.py -i perf.data -o flamegraph.html
+./skill-scripts/simpleperf.sh com.example.app        # 10s profile → flamegraph.html
+./skill-scripts/simpleperf.sh com.example.app 30     # 30s profile
 ```
+
+Requires python3 and Android NDK installed under `$ANDROID_HOME/ndk` (SDK Manager → NDK).
 
 ## Do / Don't
 
