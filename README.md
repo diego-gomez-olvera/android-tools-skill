@@ -15,6 +15,8 @@
 
 ---
 
+_Note: The SKILL is being re-evaluated after [Android CLI launch](https://android-developers.googleblog.com/2026/04/build-android-apps-3x-faster-using-any-agent.html)_
+
 ## What This Skill Does
 
 This is an **AI agent skill** — not a library. Install it once, and your AI coding agent (Claude Code, Gemini CLI, Gemini for Android Studio, Codex, GitHub Copilot) gains full knowledge of the Android development toolchain outside Android Studio: ADB, Gradle CLI, static analysis, testing, deployment, project introspection, dependency management, and code search.
