@@ -15,7 +15,9 @@
 
 ---
 
-_Note: The SKILL is being re-evaluated after [Android CLI launch](https://android-developers.googleblog.com/2026/04/build-android-apps-3x-faster-using-any-agent.html)_
+> ⚠️ **DEPRECATED:** Google has officially released the [Android CLI for Agents](https://developer.android.com/tools/agents). I highly recommend using the official tools, as they provide deeper integration (pixel-accurate previews, semantic symbol resolution, etc.) and first-party support. This repository remains available as an educational resource and as a reference for low-level ADB/Gradle automation.
+
+---
 
 ## What This Skill Does
 
@@ -25,26 +27,29 @@ Every capability maps 1-to-1 to an Android Studio built-in AI tool and has a ver
 
 ## Tool Mapping
 
-| Android Studio Tool | CLI Equivalent |
-|---|---|
-| `adb_shell_input` | `adb shell input <type> <args>` |
-| `take_screenshot` | `adb exec-out screencap -p > shot.png` |
-| `ui_state` | `adb shell uiautomator dump` |
-| `deploy` | `./gradlew installDebug` |
-| `read_logcat` | `adb logcat [--pid=<pid>]` |
-| `gradle_build` | `./gradlew <task>` |
-| `get_assemble_task_for_artifact` | `./gradlew tasks --group=build` |
-| `get_top_level_sub_projects` | `./gradlew projects` |
-| `get_build_file_location` | `./gradlew <module>:buildEnvironment` |
-| `get_source_folders_for_artifact` | `./gradlew :module:sourceSets` |
-| `get_test_task_for_artifact` | `./gradlew tasks --group=verification` |
-| `get_artifact_consumers` | `./gradlew :module:dependencyInsight` |
-| `analyze_current_file` | `./gradlew lint` / `./gradlew lintKotlin` |
-| `version_lookup` | `./gradlew dependencyUpdates` |
-| `code_search` | `git grep -n <pattern> -- '*.kt' '*.java'` |
-| `find_files` | `find . -name <name> -not -path "*/build/*"` |
-| `get_test_artifacts_for_sub_project` | `./gradlew :module:tasks` |
-| `find_usages` | `git grep -n -w <symbol> -- '*.kt' '*.java'` |
+| Tool | Barebones CLI Equivalent | Official Android CLI |
+|---|---|---|
+| `adb_shell_input` | `adb shell input <type> <args>` | Native (ADB wrapper) |
+| `take_screenshot` | `adb exec-out screencap -p > shot.png` | Native (Returns image payload) |
+| `ui_state` | `adb shell uiautomator dump` | Native (XML + visual bounds) |
+| `deploy` | `./gradlew installDebug` | Native (Builds + installs app) |
+| `read_logcat` | `adb logcat [--pid=<pid>]` | Native (Filtered by app PID) |
+| `gradle_build` | `./gradlew <task>` | Native (Gradle Tooling API) |
+| `get_assemble_task_for_artifact` | `./gradlew tasks --group=build` | Native (In-memory Project Model) |
+| `get_top_level_sub_projects` | `./gradlew projects` | Native (In-memory Project Model) |
+| `get_build_file_location` | `./gradlew <module>:buildEnvironment` | Native (In-memory Project Model) |
+| `get_source_folders_for_artifact` | `./gradlew :module:sourceSets` | Native (In-memory Project Model) |
+| `get_test_task_for_artifact` | `./gradlew tasks --group=verification` | Native (In-memory Project Model) |
+| `get_artifact_consumers` | `./gradlew :module:dependencyInsight` | Native (In-memory Project Model) |
+| `analyze_current_file` | `./gradlew lint` / `./gradlew lintKotlin` | Headless IDE Inspection Engine |
+| `version_lookup` | `./gradlew dependencyUpdates` | Native Maven/Google index lookup |
+| `code_search` | `git grep -n <pattern> -- '*.kt' '*.java'` | Lucene-based semantic index |
+| `find_files` | `find . -name <name> -not -path "*/build/*"` | IDE-based fast file search |
+| `get_test_artifacts_for_sub_project` | `./gradlew :module:tasks` | Native (In-memory Project Model) |
+| `find_usages` | `git grep -n -w <symbol> -- '*.kt' '*.java'` | Full PSI/AST Reference Search |
+| `render_compose_preview` | Launch app + screencap | Headless Layoutlib Engine |
+| `resolve_symbol` | `grep` or LSP | Kotlin Compiler / PSI Resolution |
+| `fetch_android_docs` | Web search | Direct Knowledge Base query |
 
 ## What's Covered
 
@@ -62,33 +67,42 @@ Every capability maps 1-to-1 to an Android Studio built-in AI tool and has a ver
 | [profiling.md](references/profiling.md) | Perfetto traces, heap dumps, startup time, GPU rendering |
 | [app-size.md](references/app-size.md) | aapt2, bundletool size analysis, DEX method count |
 
-## Android Studio–Only Tools (No CLI Equivalent)
+## Advanced IDE Tools: Barebones CLI vs. Official Android CLI vs. Android Studio
 
-These tools from Android Studio's AI plugin have **no meaningful CLI replacement**. They depend on the IDE's internal model, rendering pipeline, or inspection engine and cannot be replicated outside Android Studio.
+Historically, several tools from Android Studio's AI plugin had **no meaningful barebones CLI replacement** because they depended on the IDE's internal PSI model, rendering pipeline, or inspection engine. 
 
-| Tool | Why it requires Android Studio | Best available workaround |
-|---|---|---|
-| `render_compose_preview` | Runs Layoutlib — the same rendering engine as Android itself — inside the IDE process to produce pixel-accurate previews of `@Preview` composables. | Launch the app on an emulator and `adb exec-out screencap -p`. For regression testing, use [Paparazzi](https://github.com/cashapp/paparazzi) (JVM screenshot tests, no emulator). |
-| `analyze_current_file` *(full)* | Runs all registered IDE inspections: type inference, control flow analysis, data flow, unused symbol detection, Kotlin-specific checks, and hundreds of language-level rules — far beyond what lint covers. | `./gradlew lint` + `./gradlew lintKotlin` cover a subset. Full IDE-level analysis requires Android Studio or IntelliJ with the Kotlin plugin. |
-| `resolve_symbol` *(semantic)* | Resolves a reference to its declaration using the IDE's full type system — handles Kotlin's type inference, smart casts, extension functions, operator overloading, and `expect/actual`. | `grep -rn -w <symbol>` finds textual matches. `kotlin-language-server` (LSP) approaches IDE-level accuracy but requires separate installation and setup. |
-| `gradle_sync` *(full model)* | Builds Android Studio's in-memory Gradle model: all variants, build types, flavors, generated sources, merged manifests, and resource sets. Used to power all "get_*" project tools. | `./gradlew tasks --all` exposes task names. `./gradlew :module:sourceSets` and `./gradlew :module:dependencies` expose partial model data. No single command replicates the full model. |
-| `fetch_android_docs` / `search_android_docs` | Queries Android Studio's curated, offline-indexed documentation database with IDE-aware context (e.g., knowing which API you're hovering over). | Web search on [developer.android.com](https://developer.android.com), or [Context7 MCP](https://context7.com) for AI-integrated doc access. |
+With the launch of the **Official Android CLI for Agents**, these capabilities are now exposed headlessly to AI agents. However, the full Android Studio GUI still holds the edge for interactive, visual, and real-time developer workflows.
+
+* **GUI Interactivity:** The IDE provides interactive previews, bounding-box selection, and visual click-to-navigate flows.
+* **Real-time Feedback:** The IDE warns you  *while you type* and offers visual quick-fix menus.
+* **Contextual Tooltips:** The IDE provides instant, context-aware hover documentation perfectly anchored to your screen layout.
+* **Automation Efficiency (CLI Edge):** The Official Android CLI is infinitely more efficient for scripting, automating CI pipelines, and letting multi-step AI agents rapidly parse through large chunks of semantic data without having to drive a heavy UI process.
+
+| Tool | Why it historically required Android Studio | Best Barebones CLI Workaround | Official Android CLI |
+|---|---|---|---|
+| `render_compose_preview` | Runs Layoutlib (Android's rendering engine) for pixel-accurate previews without an emulator. | Launch on emulator + `adb exec-out screencap`. | Native headless Layoutlib rendering |
+| `analyze_current_file` | Runs hundreds of IDE inspections (type inference, control flow, nullability) beyond simple linting. | `./gradlew lint` + `lintKotlin` | Runs full headless IDE inspection engine |
+| `resolve_symbol` | Requires the IDE's full type system to handle inference, smart casts, operator overloading. | `grep -rn -w <symbol>` or LSP setup. | Full semantic resolution via Kotlin compiler |
+| `gradle_sync` | Builds the in-memory Gradle model (variants, generated sources, merged manifests). | `./gradlew tasks --all` & partial `sourceSets`. | Exposes the synchronized project model |
+| `fetch_android_docs` | Queries Android Studio's curated, offline-indexed knowledge base. | Web search on developer.android.com. | Direct API access to Knowledge Base |
 
 ### `analyze_current_file` coverage gap
 
-The table below shows what `./gradlew lint` + `./gradlew lintKotlin` cover versus what only the IDE provides:
+The table below illustrates how the new Official Android CLI bridges the gap between basic scripts and the full IDE:
 
-| Check type | `./gradlew lint` | `./gradlew lintKotlin` | IDE only |
-|---|---|---|---|
-| Android resource issues | ✅ | — | — |
-| Kotlin formatting | — | ✅ | — |
-| Compose rule violations | — | ✅ (with plugin) | — |
-| Unused imports | — | ✅ | — |
-| Type errors / unresolved refs | — | — | ✅ |
-| Smart cast / null safety warnings | — | — | ✅ |
-| Control / data flow analysis | — | — | ✅ |
-| Unused symbols (IDE-level) | partial | — | ✅ |
-| Kotlin compiler warnings | partial | partial | ✅ (full) |
+| Check type | Barebones CLI (`./gradlew lint`) | Barebones CLI (`lintKotlin`) | Official Android CLI | Android Studio |
+|---|---|---|---|---|
+| Android resource issues | Supported | — | Supported | Supported |
+| Kotlin formatting | — | Supported | Supported | Supported |
+| Compose rule violations | — | Supported (with plugin) | Supported | Supported |
+| Unused imports | — | Supported | Supported | Supported |
+| Type errors / unresolved refs | — | — | Supported (Headless) | Supported (Real-time) |
+| Smart cast / null safety warnings | — | — | Supported (Headless) | Supported (Real-time) |
+| Control / data flow analysis | — | — | Supported (Headless) | Supported (Real-time) |
+| Unused symbols (IDE-level) | Partial | — | Current-file scope* | Full project scope |
+| Kotlin compiler warnings | Partial | Partial | Full | Full |
+
+*\*Note on Unused Symbols: While the Official Android CLI runs the headless IDE inspection engine, detecting if a public symbol is entirely unused across a massive project requires building and querying a full global code index. Headless agents typically perform this validation at the local file scope, whereas Android Studio maintains this global index constantly in the background.*
 
 <a id="installation"></a>
 ## Installation
